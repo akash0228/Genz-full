@@ -2,7 +2,7 @@ import slugify from "slugify";
 import productModel from "../models/productModel.js";
 import fs from "fs";
 import { log } from "console";
-import CategoryModel from "../models/CategoryModel.js";
+import CategoryModel from "../models/categoryModel.js";
 import braintree from "braintree";
 import orderModel from "../models/orderModel.js";
 
@@ -363,28 +363,31 @@ export const braintreePaymentsController = async (req, res) => {
     const { cart, nonce } = req.body;
     let total = 0;
     cart.map((i) => (total += i.price));
-    let newTransaction = gateway.transaction.sale({
-      amount:total,
-      paymentMethodNonce:nonce,
-      options:{
-        submitForSettlement:true
+    let newTransaction = gateway.transaction.sale(
+      {
+        amount: total,
+        paymentMethodNonce: nonce,
+        options: {
+          submitForSettlement: true,
+        },
+      },
+      function (error, result) {
+        if (result) {
+          const order = new orderModel({
+            products: cart,
+            payment: result,
+            buyer: req.user._id,
+          }).save();
+          res.json({ ok: true });
+        } else {
+          res.status(500).send({
+            success: false,
+            error,
+            message: "Error while making payment",
+          });
+        }
       }
-    },function(error,result){
-      if(result){
-        const order = new orderModel({
-          products:cart,
-          payment:result,
-          buyer:req.user._id
-        }).save();
-        res.json({ok:true});
-      }else{
-        res.status(500).send({
-          success: false,
-          error,
-          message: "Error while making payment",
-        });
-      }
-    })
+    );
   } catch (error) {
     console.log(error);
     res.status(500).send({
