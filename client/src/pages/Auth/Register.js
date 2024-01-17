@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import Layout from "../../components/Layout/Layout";
-import { toast } from "react-toastify";
+import toast from "react-hot-toast";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import "../../styles/AuthStyles.css";
 
 const Register = () => {
   const [name, setName] = useState("");
@@ -10,6 +11,7 @@ const Register = () => {
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
+  const [answer, setAnswer] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -17,11 +19,11 @@ const Register = () => {
     try {
       const res = await axios.post(
         `${process.env.REACT_APP_API}/api/v1/auth/register`,
-        { name, email, password, phone, address }
+        { name, email, password, phone, address, answer }
       );
 
-      if (res.data.success) {
-        toast.success(res.data.message);
+      if (res && res.data.success) {
+        toast.success(res && res.data.message);
         navigate("/login");
       } else {
         toast.error(res.data.message);
@@ -34,9 +36,9 @@ const Register = () => {
 
   return (
     <Layout title="Register - Genz">
-      <div className="register">
-        <h1>Register Page</h1>
+      <div className="form-container">
         <form onSubmit={handleSubmit}>
+          <h1 className="title">Register Page</h1>
           <div className="mb-3">
             <input
               type="text"
@@ -92,8 +94,19 @@ const Register = () => {
               required
             />
           </div>
+          <div className="mb-3">
+            <input
+              type="text"
+              className="form-control"
+              id="exampleInputAnswer"
+              placeholder="What is Your Best Friend name?"
+              value={answer}
+              onChange={(e) => setAnswer(e.target.value)}
+              required
+            />
+          </div>
           <button type="submit" className="btn btn-primary">
-            Submit
+            Register
           </button>
         </form>
       </div>
